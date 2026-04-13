@@ -1,0 +1,183 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Document {
+  docId               String           @id
+  title               String
+  language            String
+  sourceFileName      String
+  sourceFileType      String
+  sourceFilePath      String
+  status              String           @default("uploaded")
+  currentVersion      Int              @default(1)
+  excludeCover        Boolean          @default(false)
+  excludeCatalog      Boolean          @default(false)
+  excludeReferences   Boolean          @default(false)
+  excludeAppendix     Boolean          @default(false)
+  manualExcludedIds   String?
+  parseError          String?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  sections            DocumentSection[]
+  paragraphs          DocumentParagraph[]
+  detectionTasks      DetectionTask[]
+  rewriteTasks        RewriteTask[]
+  recheckTasks        RecheckTask[]
+  exportTasks         ExportTask[]
+}
+
+model DocumentSection {
+  sectionId  String             @id
+  docId      String
+  title      String
+  level      Int
+  order      Int
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  document   Document           @relation(fields: [docId], references: [docId], onDelete: Cascade)
+  paragraphs DocumentParagraph[]
+}
+
+model DocumentParagraph {
+  segmentId            String             @id
+  docId                String
+  sectionId            String?
+  text                 String
+  currentText          String?
+  order                Int
+  excluded             Boolean            @default(false)
+  paragraphType        String             @default("body")
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  document             Document           @relation(fields: [docId], references: [docId], onDelete: Cascade)
+  section              DocumentSection?   @relation(fields: [sectionId], references: [sectionId], onDelete: SetNull)
+  segmentResults       SegmentResult[]
+  rewriteCandidates    RewriteCandidate[]
+}
+
+model ModelProvider {
+  providerId         String          @id
+  providerType       String
+  name               String
+  baseUrl            String
+  apiKey             String
+  model              String
+  capabilities       String
+  timeoutMs          Int
+  concurrency        Int
+  contextWindow      Int
+  status             String          @default("unknown")
+  isDefaultRewrite   Boolean         @default(false)
+  isDefaultDetect    Boolean         @default(false)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  detectionTasks     DetectionTask[]
+  rewriteTasks       RewriteTask[]
+}
+
+model DetectionTask {
+  taskId             String          @id
+  docId              String
+  providerId         String?
+  taskType           String
+  status             String          @default("pending")
+  progress           Int             @default(0)
+  summaryScore       Int?
+  plagiarismScore    Int?
+  aigcScore          Int?
+  errorMessage       String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  finishedAt         DateTime?
+  document           Document        @relation(fields: [docId], references: [docId], onDelete: Cascade)
+  provider           ModelProvider?  @relation(fields: [providerId], references: [providerId], onDelete: SetNull)
+  segmentResults     SegmentResult[]
+}
+
+model SegmentResult {
+  resultId           String          @id
+  taskId             String
+  segmentId          String
+  originalText       String
+  riskScore          Int
+  plagiarismScore    Int?
+  aigcScore          Int?
+  riskType           String
+  evidence           String
+  suggestedAction    String
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  task               DetectionTask   @relation(fields: [taskId], references: [taskId], onDelete: Cascade)
+  paragraph          DocumentParagraph @relation(fields: [segmentId], references: [segmentId], onDelete: Cascade)
+}
+
+model RewriteTask {
+  taskId             String           @id
+  docId              String
+  segmentIds         String
+  providerId         String?
+  model              String
+  strategy           String
+  status             String           @default("pending")
+  progress           Int              @default(0)
+  errorMessage       String?
+  options            String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  finishedAt         DateTime?
+  document           Document         @relation(fields: [docId], references: [docId], onDelete: Cascade)
+  provider           ModelProvider?   @relation(fields: [providerId], references: [providerId], onDelete: SetNull)
+  candidates         RewriteCandidate[]
+}
+
+model RewriteCandidate {
+  candidateId        String            @id
+  taskId             String
+  segmentId          String
+  rewrittenText      String
+  explanation        String
+  beforeScore        Int
+  afterScore         Int
+  accepted           Boolean           @default(false)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  task               RewriteTask       @relation(fields: [taskId], references: [taskId], onDelete: Cascade)
+  paragraph          DocumentParagraph @relation(fields: [segmentId], references: [segmentId], onDelete: Cascade)
+}
+
+model RecheckTask {
+  taskId             String          @id
+  docId              String
+  segmentIds         String?
+  status             String          @default("pending")
+  progress           Int             @default(0)
+  beforeScores       String?
+  afterScores        String?
+  changedSegments    String?
+  errorMessage       String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  finishedAt         DateTime?
+  document           Document        @relation(fields: [docId], references: [docId], onDelete: Cascade)
+}
+
+model ExportTask {
+  exportId           String          @id
+  docId              String
+  exportType         String
+  status             String          @default("pending")
+  progress           Int             @default(0)
+  downloadUrl        String?
+  filePath           String?
+  errorMessage       String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  finishedAt         DateTime?
+  document           Document        @relation(fields: [docId], references: [docId], onDelete: Cascade)
+}

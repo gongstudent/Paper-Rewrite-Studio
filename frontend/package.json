@@ -1,0 +1,39 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "npx -y node@22 ../node_modules/typescript/bin/tsc -b && npx -y node@22 ../node_modules/vite/bin/vite.js build",
+    "preview": "vite preview",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.66.8",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.511.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.6.1"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^22.19.15",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.4.1",
+    "autoprefixer": "^10.4.20",
+    "jsdom": "^29.0.1",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3",
+    "vite": "^6.2.0",
+    "vitest": "^4.1.0"
+  }
+}

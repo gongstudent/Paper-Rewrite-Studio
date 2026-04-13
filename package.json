@@ -1,0 +1,24 @@
+{
+  "name": "paper-rewrite-tool",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "npm@11.6.2",
+  "engines": {
+    "node": ">=20 <25"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace backend\" \"npm run dev --workspace frontend\"",
+    "dev:frontend": "npm run dev --workspace frontend",
+    "dev:backend": "npm run dev --workspace backend",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
